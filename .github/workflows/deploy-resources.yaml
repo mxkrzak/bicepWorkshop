@@ -1,0 +1,29 @@
+name: Run PowerShell Script with Azure Login
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # This allows manual triggering of the workflow
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+      
+    - name: Set up Azure CLI
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        enable-AzPSSession: true
+    - name: Run PowerShell Script
+      shell: pwsh
+      run: |
+        scripts\deploy.ps1 -ResourceGroupName "rg-bicep"
+      env:
+        TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        CERTIFICATE_THUMBPRINT: ${{ secrets.AZURE_CERTIFICATE_THUMBPRINT }}
