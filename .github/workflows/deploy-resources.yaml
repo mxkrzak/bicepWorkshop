@@ -1,29 +1,28 @@
-name: Run PowerShell Script with Azure Login
+name: Deploy Bicep Template
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch: # This allows manual triggering of the workflow
+  workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: windows-latest
-    
+  deploy:
+    runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout Repository
+    - name: Checkout code
       uses: actions/checkout@v2
-      
-    - name: Set up Azure CLI
+
+    - name: Login to Azure
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
         enable-AzPSSession: true
-    - name: Run PowerShell Script
-      shell: pwsh
-      run: |
-        scripts\deploy.ps1 -ResourceGroupName "rg-bicep"
-      env:
-        TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        CERTIFICATE_THUMBPRINT: ${{ secrets.AZURE_CERTIFICATE_THUMBPRINT }}
+    
+    - name: Set up Azure PowerShell module
+      uses: azure/powershell@v1
+      with:
+        azPSVersion: latest
+        inlineScript: |
+          ./scripts/deploy.ps1 -ResourceGroupName "rg-bicep"
